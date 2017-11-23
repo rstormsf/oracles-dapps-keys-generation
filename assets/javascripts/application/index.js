@@ -24,7 +24,6 @@ function startDapp(web3, isOraclesNetwork) {
 			if (accounts.length == 1) {
 				var possibleInitialKey = accounts[0].substr(2);
 				checkInitialKey(web3,
-				"checkInitialKey(address)", 
 				possibleInitialKey,
 				contractAddress,
 				abi,

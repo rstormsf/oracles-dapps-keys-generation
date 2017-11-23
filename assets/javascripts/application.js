@@ -19,39 +19,37 @@ function generatePassword() {
 }
 function addValidator(web3, validatorViewObj, contractAddr, abi, cb) {
   console.log("***Add validator function***");
-  attachToContract(web3, abi, contractAddr, function(err, oraclesContract) {
-    console.log("attach to oracles contract");
-    if (err) {
-      console.log(err)
-      return cb();
-    }
+  let ValidatorsStorage = attachToContract(web3, abi, contractAddr)
+  console.log("attach to oracles contract");
+  if (!ValidatorsStorage) {
+    return cb();
+  }
 
-    console.log(validatorViewObj);
-    console.log(oraclesContract);
+  console.log(validatorViewObj);
+  console.log(ValidatorsStorage);
 
-    var txHash;
-    var gasPrice = web3.utils.toWei(new web3.utils.BN(1), 'gwei')
-    var opts = {from: web3.eth.defaultAccount, gasPrice: gasPrice}
-    
-    oraclesContract.methods.addValidator(validatorViewObj.miningKey, 
-      validatorViewObj.zip, 
-      validatorViewObj.licenseID,
-      validatorViewObj.licenseExpiredAt,
-      validatorViewObj.fullName,
-      validatorViewObj.streetName,
-      validatorViewObj.state
-      )
-    .send(opts)
-    .on('error', error => {
-      return cb(txHash, error);
-    })
-    .on('transactionHash', _txHash => {
-      console.log("contract method transaction: " + _txHash);
-      txHash = _txHash;
-    })
-    .on('receipt', receipt => {
-      return cb(txHash)
-    });
+  var txHash;
+  var gasPrice = web3.utils.toWei(new web3.utils.BN(1), 'gwei')
+  var opts = {from: web3.eth.defaultAccount, gasPrice: gasPrice}
+  
+  ValidatorsStorage.methods.addValidator(validatorViewObj.miningKey, 
+    validatorViewObj.zip, 
+    validatorViewObj.licenseID,
+    validatorViewObj.licenseExpiredAt,
+    validatorViewObj.fullName,
+    validatorViewObj.streetName,
+    validatorViewObj.state
+    )
+  .send(opts)
+  .on('error', error => {
+    return cb(txHash, error);
+  })
+  .on('transactionHash', _txHash => {
+    console.log("contract method transaction: " + _txHash);
+    txHash = _txHash;
+  })
+  .on('receipt', receipt => {
+    return cb(txHash)
   });
 }
 function showAlert(err, msg) {
@@ -84,28 +82,26 @@ function getBalance(address, cb) {
       });
 }
 
-function attachToContract(web3, abi, addr, cb) {
+function attachToContract(web3, abi, addr) {
   web3.eth.defaultAccount = web3.eth.accounts[0];
   console.log("web3.eth.defaultAccount:" + web3.eth.defaultAccount);
   
-  var contractInstance = new web3.eth.Contract(abi, addr);
+  let contractInstance = new web3.eth.Contract(abi, addr);
   
-  if (cb) cb(null, contractInstance);
+  return contractInstance;
 }
-function checkInitialKey(web3, func, initialKey, contractAddr, abi, cb) {
-  attachToContract(web3, abi, contractAddr, function(err, oraclesContract) {
-    console.log("attach to oracles contract");
+function checkInitialKey(web3, initialKey, contractAddr, abi, cb) {
+  let KeysStorage = attachToContract(web3, abi, contractAddr)
+  console.log("attach to oracles contract");
+  if (!KeysStorage) {
+    return cb();
+  }
+
+  KeysStorage.methods.checkInitialKey("0x" + initialKey).call(function(err, isNew) {
     if (err) {
       console.log(err)
-      return cb();
     }
-
-    oraclesContract.methods.checkInitialKey("0x" + initialKey).call(function(err, isNew) {
-      if (err) {
-        console.log(err)
-      }
-      cb(isNew);
-    })
+    cb(isNew);
   })
 }
 //check current network page is connected to. Alerts, if not Oracles network
@@ -225,31 +221,29 @@ function bytesCount(s) {
 }
 function createKeys(web3, keys, contractAddr, abi, cb) {
   console.log("***Create keys function***");
-  attachToContract(web3, abi, contractAddr, function(err, oraclesContract) {
-    console.log("attach to oracles contract");
-    if (err) {
-      console.log(err)
-      return cb();
-    }
+  let KeysStorage = attachToContract(web3, abi, contractAddr)
+  console.log("attach to oracles contract");
+  if (!KeysStorage) {
+    return cb();
+  }
 
-    console.log(keys);
-    var txHash;
-    var gasPrice = web3.utils.toWei(new web3.utils.BN(1), 'gwei')
-    var opts = {from: web3.eth.defaultAccount, gasPrice: gasPrice}
-    
-    oraclesContract.methods.createKeys("0x" + keys.miningKey.miningKeyObject.address, 
-      "0x" + keys.payoutKey.payoutKeyObject.address, 
-      "0x" + keys.votingKey.votingKeyObject.address
-    ).send(opts).on('error', error => {
-      return cb(txHash, error);
-    })
-    .on('transactionHash', _txHash => {
-      console.log("contract method transaction: " + _txHash);
-      txHash = _txHash;
-    })
-    .on('receipt', receipt => {
-      return cb(txHash)
-    });
+  console.log(keys);
+  var txHash;
+  var gasPrice = web3.utils.toWei(new web3.utils.BN(1), 'gwei')
+  var opts = {from: web3.eth.defaultAccount, gasPrice: gasPrice}
+  
+  oraclesContract.methods.createKeys("0x" + keys.miningKey.miningKeyObject.address, 
+    "0x" + keys.payoutKey.payoutKeyObject.address, 
+    "0x" + keys.votingKey.votingKeyObject.address
+  ).send(opts).on('error', error => {
+    return cb(txHash, error);
+  })
+  .on('transactionHash', _txHash => {
+    console.log("contract method transaction: " + _txHash);
+    txHash = _txHash;
+  })
+  .on('receipt', receipt => {
+    return cb(txHash)
   });
 }
 function download(filename, text) {
@@ -333,7 +327,6 @@ function startDapp(web3, isOraclesNetwork) {
 			if (accounts.length == 1) {
 				var possibleInitialKey = accounts[0].substr(2);
 				checkInitialKey(web3,
-				"checkInitialKey(address)", 
 				possibleInitialKey,
 				contractAddress,
 				abi,

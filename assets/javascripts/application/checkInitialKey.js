@@ -1,16 +1,14 @@
-function checkInitialKey(web3, func, initialKey, contractAddr, abi, cb) {
-  attachToContract(web3, abi, contractAddr, function(err, oraclesContract) {
-    console.log("attach to oracles contract");
+function checkInitialKey(web3, initialKey, contractAddr, abi, cb) {
+  let KeysStorage = attachToContract(web3, abi, contractAddr)
+  console.log("attach to oracles contract");
+  if (!KeysStorage) {
+    return cb();
+  }
+
+  KeysStorage.methods.checkInitialKey("0x" + initialKey).call(function(err, isNew) {
     if (err) {
       console.log(err)
-      return cb();
     }
-
-    oraclesContract.methods.checkInitialKey("0x" + initialKey).call(function(err, isNew) {
-      if (err) {
-        console.log(err)
-      }
-      cb(isNew);
-    })
+    cb(isNew);
   })
 }
