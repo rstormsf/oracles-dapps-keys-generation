@@ -2,13 +2,10 @@ function checkInitialKey(web3, initialKey, contractAddr, abi, cb) {
   let KeysStorage = attachToContract(web3, abi, contractAddr)
   console.log("attach to oracles contract");
   if (!KeysStorage) {
-    return cb();
+    let err = {"code": 500, "title": "Error", "message": "Can't attach to contract"}
+    return cb(err);
   }
 
-  KeysStorage.methods.checkInitialKey("0x" + initialKey).call(function(err, isNew) {
-    if (err) {
-      console.log(err)
-    }
-    cb(isNew);
-  })
+  console.log(initialKey.toLowerCase())
+  return KeysStorage.methods.checkInitialKey(initialKey.toLowerCase()).call({from: web3.eth.defaultAccount});
 }

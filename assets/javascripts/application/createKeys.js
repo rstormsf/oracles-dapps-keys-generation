@@ -3,7 +3,7 @@ function createKeys(web3, keys, contractAddr, abi, cb) {
   let KeysStorage = attachToContract(web3, abi, contractAddr)
   console.log("attach to oracles contract");
   if (!KeysStorage) {
-    return cb();
+    return console.log("KeysStorage contract is undefined");
   }
 
   console.log(keys);
@@ -11,10 +11,11 @@ function createKeys(web3, keys, contractAddr, abi, cb) {
   var gasPrice = web3.utils.toWei(new web3.utils.BN(1), 'gwei')
   var opts = {from: web3.eth.defaultAccount, gasPrice: gasPrice}
   
-  oraclesContract.methods.createKeys("0x" + keys.miningKey.miningKeyObject.address, 
+  return KeysStorage.methods.createKeys("0x" + keys.miningKey.miningKeyObject.address, 
     "0x" + keys.payoutKey.payoutKeyObject.address, 
     "0x" + keys.votingKey.votingKeyObject.address
-  ).send(opts).on('error', error => {
+  ).send(opts)
+  /*.on('error', error => {
     return cb(txHash, error);
   })
   .on('transactionHash', _txHash => {
@@ -23,5 +24,5 @@ function createKeys(web3, keys, contractAddr, abi, cb) {
   })
   .on('receipt', receipt => {
     return cb(txHash)
-  });
+  });*/
 }

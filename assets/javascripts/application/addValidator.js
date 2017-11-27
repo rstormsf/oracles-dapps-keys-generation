@@ -3,17 +3,17 @@ function addValidator(web3, validatorViewObj, contractAddr, abi, cb) {
   let ValidatorsStorage = attachToContract(web3, abi, contractAddr)
   console.log("attach to oracles contract");
   if (!ValidatorsStorage) {
-    return cb();
+    return console.log("ValidatorsStorage contract is undefined");
   }
 
   console.log(validatorViewObj);
-  console.log(ValidatorsStorage);
 
   var txHash;
   var gasPrice = web3.utils.toWei(new web3.utils.BN(1), 'gwei')
   var opts = {from: web3.eth.defaultAccount, gasPrice: gasPrice}
   
-  ValidatorsStorage.methods.addValidator(validatorViewObj.miningKey, 
+  return ValidatorsStorage.methods.addValidator(
+    validatorViewObj.miningKey, 
     validatorViewObj.zip, 
     validatorViewObj.licenseID,
     validatorViewObj.licenseExpiredAt,
@@ -22,7 +22,7 @@ function addValidator(web3, validatorViewObj, contractAddr, abi, cb) {
     validatorViewObj.state
     )
   .send(opts)
-  .on('error', error => {
+  /*.on('error', error => {
     return cb(txHash, error);
   })
   .on('transactionHash', _txHash => {
@@ -31,5 +31,5 @@ function addValidator(web3, validatorViewObj, contractAddr, abi, cb) {
   })
   .on('receipt', receipt => {
     return cb(txHash)
-  });
+  });*/
 }
